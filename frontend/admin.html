@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Community Issue Mapper</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <h2><i class="fas fa-shield-alt"></i> Admin Panel</h2>
+            </div>
+            <nav class="admin-nav">
+                <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#issues" class="nav-item" data-section="issues">
+                    <i class="fas fa-exclamation-circle"></i> Manage Issues
+                </a>
+                <a href="#users" class="nav-item" data-section="users">
+                    <i class="fas fa-users"></i> Users
+                </a>
+                <a href="#analytics" class="nav-item" data-section="analytics">
+                    <i class="fas fa-chart-bar"></i> Analytics
+                </a>
+                <a href="#settings" class="nav-item" data-section="settings">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-home"></i> Back to Map
+                </a>
+            </nav>
+            <div class="admin-user">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-info">
+                    <span class="user-name" id="admin-name">Admin User</span>
+                    <span class="user-role">Administrator</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="admin-section active">
+                <div class="section-header">
+                    <h1>Dashboard Overview</h1>
+                    <button class="btn btn-primary" id="refresh-data">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-issues-stat">0</h3>
+                            <p>Total Issues</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="resolved-stat">0</h3>
+                            <p>Resolved</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-orange">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="pending-stat">0</h3>
+                            <p>Pending</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-purple">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="users-stat">0</h3>
+                            <p>Active Users</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <h3>Issues Trend (Last 30 Days)</h3>
+                        <canvas id="issues-trend-chart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Issues by Category</h3>
+                        <canvas id="category-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="activity-card">
+                    <h3>Recent Activity</h3>
+                    <div id="recent-activity" class="activity-list"></div>
+                </div>
+            </section>
+
+            <!-- Issues Management Section -->
+            <section id="issues" class="admin-section">
+                <div class="section-header">
+                    <h1>Manage Issues</h1>
+                    <div class="header-actions">
+                        <input type="text" id="search-issues" placeholder="Search issues..." class="search-input">
+                        <select id="filter-status-admin" class="filter-select">
+                            <option value="">All Statuses</option>
+                            <option value="new">New</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Reporter</th>
+                                <th>Votes</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="issues-table-body">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users" class="admin-section">
+                <div class="section-header">
+                    <h1>User Management</h1>
+                </div>
+                <div id="users-content" class="content-placeholder">
+                    <i class="fas fa-users fa-3x"></i>
+                    <p>User management coming soon...</p>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics" class="admin-section">
+                <div class="section-header">
+                    <h1>Advanced Analytics</h1>
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Average Resolution Time</h3>
+                        <div class="big-stat">
+                            <span id="avg-resolution-time">0</span>
+                            <span class="unit">hours</span>
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Issues This Week</h3>
+                        <div class="big-stat">
+                            <span id="issues-this-week">0</span>
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Resolution Rate</h3>
+                        <div class="big-stat">
+                            <span id="resolution-rate">0</span>
+                            <span class="unit">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Top Contributors</h3>
+                    <div id="top-contributors" class="contributors-list"></div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="admin-section">
+                <div class="section-header">
+                    <h1>Settings</h1>
+                </div>
+                <div id="settings-content" class="content-placeholder">
+                    <i class="fas fa-cog fa-3x"></i>
+                    <p>Settings panel coming soon...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Issue Detail Modal -->
+    <div id="issue-modal" class="modal" style="display: none;">
+        <div class="modal-content modal-large">
+            <span class="modal-close">&times;</span>
+            <div id="issue-detail"></div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

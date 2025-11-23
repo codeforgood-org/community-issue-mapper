@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS issue_votes;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS activities;
+DROP TABLE IF EXISTS comments;
+ALTER TABLE issues DROP COLUMN IF EXISTS user_id;
+DROP TABLE IF EXISTS users;

@@ -4,9 +4,11 @@ class IssueMap {
     constructor(containerId) {
         this.map = null;
         this.markers = new Map();
+        this.markerCluster = null;
         this.selectedLocation = null;
         this.tempMarker = null;
         this.containerId = containerId;
+        this.clusteringEnabled = true;
     }
 
     initialize(lat = 37.7749, lng = -122.4194, zoom = 13) {
@@ -19,10 +21,28 @@ class IssueMap {
             maxZoom: 19,
         }).addTo(this.map);
 
+        // Initialize marker cluster group
+        this.markerCluster = L.markerClusterGroup({
+            maxClusterRadius: 50,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: true,
+            zoomToBoundsOnClick: true
+        });
+        this.map.addLayer(this.markerCluster);
+
         // Add click handler for selecting location
         this.map.on('click', (e) => this.onMapClick(e));
 
         return this;
+    }
+
+    toggleClustering(enabled) {
+        this.clusteringEnabled = enabled;
+        if (enabled && !this.map.hasLayer(this.markerCluster)) {
+            this.map.addLayer(this.markerCluster);
+        } else if (!enabled && this.map.hasLayer(this.markerCluster)) {
+            this.map.removeLayer(this.markerCluster);
+        }
     }
 
     onMapClick(e) {
@@ -149,9 +169,15 @@ class IssueMap {
     addIssueMarker(issue) {
         const marker = L.marker([issue.latitude, issue.longitude], {
             icon: this.createIcon(this.getMarkerColor(issue.status)),
-        }).addTo(this.map);
+        });
 
         marker.bindPopup(this.createPopupContent(issue));
+
+        if (this.clusteringEnabled) {
+            this.markerCluster.addLayer(marker);
+        } else {
+            marker.addTo(this.map);
+        }
 
         this.markers.set(issue.id, marker);
         return marker;
@@ -159,20 +185,34 @@ class IssueMap {
 
     updateIssueMarker(issue) {
         if (this.markers.has(issue.id)) {
-            this.markers.get(issue.id).remove();
+            const oldMarker = this.markers.get(issue.id);
+            if (this.clusteringEnabled) {
+                this.markerCluster.removeLayer(oldMarker);
+            } else {
+                this.map.removeLayer(oldMarker);
+            }
         }
         this.addIssueMarker(issue);
     }
 
     removeIssueMarker(issueId) {
         if (this.markers.has(issueId)) {
-            this.markers.get(issueId).remove();
+            const marker = this.markers.get(issueId);
+            if (this.clusteringEnabled) {
+                this.markerCluster.removeLayer(marker);
+            } else {
+                this.map.removeLayer(marker);
+            }
             this.markers.delete(issueId);
         }
     }
 
     clearMarkers() {
-        this.markers.forEach(marker => marker.remove());
+        if (this.clusteringEnabled) {
+            this.markerCluster.clearLayers();
+        } else {
+            this.markers.forEach(marker => this.map.removeLayer(marker));
+        }
         this.markers.clear();
     }
 
@@ -187,6 +227,28 @@ class IssueMap {
             );
             this.map.fitBounds(bounds, { padding: [50, 50] });
         }
+    }
+
+    exportToGeoJSON() {
+        const features = [];
+        this.markers.forEach((marker, issueId) => {
+            const latlng = marker.getLatLng();
+            features.push({
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [latlng.lng, latlng.lat]
+                },
+                properties: {
+                    issueId: issueId
+                }
+            });
+        });
+
+        return {
+            type: 'FeatureCollection',
+            features: features
+        };
     }
 
     locateUser() {
