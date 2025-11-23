@@ -1,0 +1,535 @@
+openapi: 3.0.3
+info:
+  title: Community Issue Mapper API
+  description: API for reporting and managing community issues
+  version: 2.0.0
+  contact:
+    name: API Support
+    url: https://github.com/codeforgood-org/community-issue-mapper
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+  - url: https://api.communityissues.com/api/v1
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and profile management
+  - name: Issues
+    description: Issue reporting and management
+  - name: Comments
+    description: Issue comments and discussions
+  - name: Analytics
+    description: Statistics and analytics
+  - name: Export
+    description: Data export functionality
+
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, name, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                name:
+                  type: string
+                  minLength: 2
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/profile:
+    get:
+      tags: [Authentication]
+      summary: Get user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    patch:
+      tags: [Authentication]
+      summary: Update user profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                bio:
+                  type: string
+                avatar:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+
+  /issues:
+    get:
+      tags: [Issues]
+      summary: List all issues
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [pothole, accessibility, streetlight, graffiti, trash, other]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [new, in_progress, resolved, closed]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of issues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+    post:
+      tags: [Issues]
+      summary: Create a new issue
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIssueRequest'
+      responses:
+        '201':
+          description: Issue created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+
+  /issues/{id}:
+    get:
+      tags: [Issues]
+      summary: Get issue by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Issue details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '404':
+          description: Issue not found
+    patch:
+      tags: [Issues]
+      summary: Update issue
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [new, in_progress, resolved, closed]
+      responses:
+        '200':
+          description: Issue updated
+    delete:
+      tags: [Issues]
+      summary: Delete issue
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Issue deleted
+
+  /issues/{id}/upload:
+    post:
+      tags: [Issues]
+      summary: Upload image for issue
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Image uploaded
+
+  /issues/{id}/vote:
+    post:
+      tags: [Issues]
+      summary: Vote for an issue
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Vote recorded
+
+  /issues/{id}/comments:
+    get:
+      tags: [Comments]
+      summary: Get comments for an issue
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+    post:
+      tags: [Comments]
+      summary: Add a comment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content:
+                  type: string
+                  maxLength: 2000
+      responses:
+        '201':
+          description: Comment added
+
+  /stats:
+    get:
+      tags: [Analytics]
+      summary: Get platform statistics
+      responses:
+        '200':
+          description: Statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+
+  /analytics:
+    get:
+      tags: [Analytics]
+      summary: Get advanced analytics
+      responses:
+        '200':
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsData'
+
+  /export/csv:
+    get:
+      tags: [Export]
+      summary: Export issues to CSV
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+  /export/pdf:
+    get:
+      tags: [Export]
+      summary: Export issues to PDF
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [user, moderator, admin]
+        avatar:
+          type: string
+        bio:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    Issue:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [pothole, accessibility, streetlight, graffiti, trash, other]
+        status:
+          type: string
+          enum: [new, in_progress, resolved, closed]
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        address:
+          type: string
+        image_url:
+          type: string
+        reporter_name:
+          type: string
+        votes:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateIssueRequest:
+      type: object
+      required: [title, description, category, latitude, longitude]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        address:
+          type: string
+        reporter_name:
+          type: string
+        reporter_email:
+          type: string
+          format: email
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+        issue_id:
+          type: integer
+        user_id:
+          type: integer
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Stats:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        issues_by_status:
+          type: object
+          additionalProperties:
+            type: integer
+        issues_by_category:
+          type: object
+          additionalProperties:
+            type: integer
+
+    AnalyticsData:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        total_users:
+          type: integer
+        total_comments:
+          type: integer
+        issues_this_week:
+          type: integer
+        avg_resolution_time_hours:
+          type: number
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string

@@ -21,6 +21,22 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: community-issues-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
   app:
     build: .
     container_name: community-issues-app
@@ -33,15 +49,26 @@ services:
       - DB_PASSWORD=issueapp_password
       - DB_NAME=community_issues
       - DB_SSL_MODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
       - CORS_ALLOWED_ORIGINS=*
       - MAX_UPLOAD_SIZE=10485760
       - UPLOAD_DIR=./uploads
       - RATE_LIMIT_REQUESTS=100
       - RATE_LIMIT_DURATION=1m
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=
+      - SMTP_PASSWORD=
+      - WEBHOOK_ENDPOINTS=
     ports:
       - "8080:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       - ./uploads:/root/uploads
@@ -68,6 +95,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   app-network:

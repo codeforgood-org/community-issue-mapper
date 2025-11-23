@@ -1,0 +1,172 @@
+/* Dark Mode Styles */
+
+:root {
+    --dm-bg-color: #1a1a1a;
+    --dm-card-bg: #2d2d2d;
+    --dm-text-primary: #e5e5e5;
+    --dm-text-secondary: #a0a0a0;
+    --dm-border-color: #404040;
+    --dm-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+    --dm-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+}
+
+body.dark-mode {
+    background-color: var(--dm-bg-color);
+    color: var(--dm-text-primary);
+}
+
+.dark-mode .sidebar,
+.dark-mode .admin-sidebar {
+    background: var(--dm-card-bg);
+    border-color: var(--dm-border-color);
+}
+
+.dark-mode .sidebar-section,
+.dark-mode .activity-card,
+.dark-mode .chart-card,
+.dark-mode .stat-card {
+    background: var(--dm-card-bg);
+    color: var(--dm-text-primary);
+    box-shadow: var(--dm-shadow);
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select,
+.dark-mode .form-group textarea,
+.dark-mode .search-input,
+.dark-mode .filter-select {
+    background: #3a3a3a;
+    border-color: var(--dm-border-color);
+    color: var(--dm-text-primary);
+}
+
+.dark-mode .form-group input:focus,
+.dark-mode .form-group select:focus,
+.dark-mode .form-group textarea:focus {
+    background: #404040;
+    border-color: var(--primary-color);
+}
+
+.dark-mode .table-container {
+    background: var(--dm-card-bg);
+}
+
+.dark-mode .data-table {
+    background: var(--dm-card-bg);
+}
+
+.dark-mode .data-table thead {
+    background: #3a3a3a;
+}
+
+.dark-mode .data-table th {
+    color: var(--dm-text-primary);
+    border-color: var(--dm-border-color);
+}
+
+.dark-mode .data-table td {
+    color: var(--dm-text-secondary);
+    border-color: var(--dm-border-color);
+}
+
+.dark-mode .data-table tbody tr:hover {
+    background: #3a3a3a;
+}
+
+.dark-mode .section-header h1,
+.dark-mode .sidebar-section h2,
+.dark-mode h1, .dark-mode h2, .dark-mode h3 {
+    color: var(--dm-text-primary);
+}
+
+.dark-mode .help-text,
+.dark-mode .stat-content p,
+.dark-mode .activity-time {
+    color: var(--dm-text-secondary);
+}
+
+.dark-mode .legend {
+    background: #3a3a3a;
+}
+
+.dark-mode .contributor-item {
+    background: #3a3a3a;
+}
+
+.dark-mode .activity-icon {
+    background: #3a3a3a;
+    color: var(--primary-color);
+}
+
+.dark-mode .modal-content {
+    background: var(--dm-card-bg);
+    color: var(--dm-text-primary);
+}
+
+.dark-mode .toast {
+    background: var(--dm-card-bg);
+    color: var(--dm-text-primary);
+    box-shadow: var(--dm-shadow-lg);
+}
+
+/* Leaflet popup in dark mode */
+.dark-mode .leaflet-popup-content-wrapper {
+    background: var(--dm-card-bg);
+    color: var(--dm-text-primary);
+}
+
+.dark-mode .leaflet-popup-tip {
+    background: var(--dm-card-bg);
+}
+
+.dark-mode .issue-popup h3 {
+    color: var(--dm-text-primary);
+}
+
+.dark-mode .issue-popup p {
+    color: var(--dm-text-secondary);
+}
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    transition: all 0.3s;
+}
+
+.dark-mode-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 20px -5px rgb(0 0 0 / 0.3);
+}
+
+.dark-mode .dark-mode-toggle {
+    background: #f59e0b;
+}
+
+/* Smooth transitions */
+body,
+.sidebar,
+.form-group input,
+.form-group select,
+.form-group textarea,
+.stat-card,
+.chart-card,
+.activity-card,
+.data-table,
+.modal-content {
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
